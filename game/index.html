@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <title>Unity Web Player | 天下归心</title>
+    <style>
+      html, body { margin:0; padding:0; border:0; width:100%; height:100%; overflow:hidden; background:#CCCCCC; }
+      #unity-container { position:fixed; left:0; top:0; width:100%; height:100%; }
+      #unity-canvas { width:100%; height:100%; display:block; margin:0; padding:0; background:#CCCCCC; touch-action:none; }
+      /* 启动加载遮罩 */
+      #unity-loading { position:fixed; inset:0; z-index:99998; background:#10131a; color:#e6e9f0; display:flex; align-items:center; justify-content:center; font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+      #unity-loading.hidden { display:none; }
+      #loading-box { width:min(80vw,560px); text-align:center; }
+      #loading-box h1 { font-size:22px; margin:0 0 14px; letter-spacing:2px; }
+      #loading-bar-wrap { height:14px; background:#232a38; border-radius:8px; overflow:hidden; border:1px solid #3a4358; }
+      #loading-bar { height:100%; width:0%; background:linear-gradient(90deg,#3b82f6,#22c55e); transition:width .15s linear; }
+      #loading-pct { font-size:15px; margin-top:10px; color:#9aa4b5; }
+      #loading-phase { font-size:13px; margin-top:6px; color:#8b94a6; }
+      #loading-diag { margin-top:18px; text-align:left; font:12px/1.6 monospace; color:#7f8a9c; background:rgba(255,255,255,0.04); border-radius:8px; padding:10px 12px; max-height:38vh; overflow:auto; white-space:pre-wrap; word-break:break-all; }
+      /* 启动错误诊断：默认隐藏，仅出错时全屏显示 */
+      #unity-diagnose { position:fixed; inset:0; z-index:99999; background:#1a0000; color:#fff; font:14px/1.6 monospace; padding:24px; display:none; overflow:auto; white-space:pre-wrap; word-break:break-all; }
+      #unity-diagnose.show { display:block; }
+      #unity-diagnose h1 { font-size:18px; margin:0 0 12px; color:#ffb0b0; }
+      #unity-diagnose .label { color:#ffd27f; }
+    </style>
+  </head>
+  <body>
+    <div id="unity-container"><canvas id="unity-canvas" tabindex="-1"></canvas></div>
+    <div id="unity-loading">
+      <div id="loading-box">
+        <h1>正在加载</h1>
+        <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+        <div id="loading-pct">0%</div>
+        <div id="loading-phase">初始化...</div>
+        <div id="loading-diag"></div>
+      </div>
+    </div>
+    <div id="unity-diagnose"></div>
+    <script src="Build/bc7d570e49351f489370d6ec72036a55.loader.js"></script>
+    <script>
+      (function() {
+        var loading = document.getElementById('unity-loading');
+        var bar = document.getElementById('loading-bar');
+        var pctEl = document.getElementById('loading-pct');
+        var phaseEl = document.getElementById('loading-phase');
+        var diagEl = document.getElementById('loading-diag');
+        var diagFull = document.getElementById('unity-diagnose');
+
+        function diagInfo() {
+          var ua = navigator.userAgent || '';
+          var mem = (navigator.deviceMemory != null) ? (navigator.deviceMemory + ' GB') : 'unknown';
+          var lang = (navigator.language || '');
+          var webgl2 = false, webgl1 = false, glInfo = '';
+          try {
+            var c = document.createElement('canvas');
+            var gl1 = c.getContext('webgl') || c.getContext('experimental-webgl');
+            if (gl1) { webgl1 = true; glInfo = 'WEBGL1 ' + (gl1.getParameter(gl1.RENDERER)||''); }
+            var gl2 = c.getContext('webgl2');
+            if (gl2) { webgl2 = true; glInfo = 'WEBGL2 ' + (gl2.getParameter(gl2.RENDERER)||''); }
+          } catch(e) { glInfo = 'gl-probe-err:' + e.message; }
+          return 'UA: ' + ua + '\nLang: ' + lang + '\nDeviceMemory: ' + mem + '\nWebGL2: ' + webgl2 + '\nWebGL1: ' + webgl1 + '\nGPU: ' + glInfo;
+        }
+
+        function updateProgress(loaded, total) {
+          var pct = (total && total > 0) ? Math.min(100, Math.round(loaded / total * 100)) : (loaded ? 1 : 0);
+          bar.style.width = pct + '%';
+          pctEl.textContent = pct + '%';
+          var mb = (loaded / 1048576).toFixed(2);
+          var tot = (total / 1048576).toFixed(2);
+          if (diagEl) diagEl.textContent = diagInfo() + '\n\n已下载: ' + mb + ' / ' + (total ? tot : '?') + ' MB';
+        }
+
+        function setPhase(text) { if (phaseEl) phaseEl.textContent = text; }
+
+        function 展示诊断(信息, 保留遮罩) {
+          if (diagFull) {
+            diagFull.innerHTML = '<h1>Fatal Error</h1>' + 信息;
+            diagFull.classList.add('show');
+          }
+          // 保留/更新遮罩里的调试信息，方便对照。
+          if (loading && !保留遮罩) loading.classList.add('hidden');
+        }
+
+        function esc(s) {
+          return (s == null ? '' : String(s))
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/\n/g,'<br>');
+        }
+
+        // 显示初始设备诊断
+        if (diagEl) diagEl.textContent = diagInfo();
+
+        window.addEventListener('error', function(e) {
+          var m = 'GLOBAL_ERROR: ' + (e && e.message) + '<br>at ' + ((e && e.filename)||'') + ':' + ((e && e.lineno)||'');
+          if (e && e.stack) m += '<br>' + esc(e.stack);
+          展示诊断(m + '<br><br>' + esc(diagInfo()), true);
+        }, true);
+        window.addEventListener('unhandledrejection', function(e) {
+          var r = e && e.reason;
+          var m = 'UNHANDLED_REJECTION: ' + (r && (r.message||r));
+          if (r && r.stack) m += '<br>' + esc(r.stack);
+          展示诊断(m + '<br><br>' + esc(diagInfo()), true);
+        });
+
+        // 下载资源阶段的进度
+        window.__unityProgress = function(progress, loaded, total) {
+          setPhase('正在下载资源...');
+          updateProgress(loaded, total);
+        };
+
+        try {
+          createUnityInstance(document.querySelector('#unity-canvas'), {
+            arguments: [],
+            matchWebGLToCanvasSize: true,
+            dataUrl: 'Build/bb61d9eca1949d063df3406ea7e447c2.data',
+            frameworkUrl: 'Build/c6ee89b5c0c45349bddc429833ee955b.framework.js',
+            codeUrl: 'Build/21ae9acf5bd808de04b4d117710ca6b1.wasm',
+            streamingAssetsUrl: 'StreamingAssets',
+            companyName: 'Elyvon',
+            productName: '天下归心',
+            productVersion: '1.2.9',
+            onProgress: function(progress) {
+              if (!progress) return;
+              var total = progress.total || 0;
+              var loaded = progress.loaded || 0;
+              setPhase('正在下载资源...');
+              updateProgress(loaded, total);
+            }
+          }).then(function(instance) {
+            globalThis.unityInstance = instance;
+            globalThis.gameInstance = instance;
+            // 进入 Unity 世界：隐藏遮罩，显示 Unity 画面。
+            setPhase('加载完成');
+            updateProgress(instance.module ? 1 : 1, 1);
+            if (loading) loading.classList.add('hidden');
+          }).catch(function(message) {
+            setPhase('启动失败');
+            展示诊断('UNITY_INIT_FAILED<br>' + esc(message) + '<br><br>' + esc(diagInfo()), true);
+          });
+        } catch(e) {
+          展示诊断('UNITY_BOOT_EXCEPTION<br>' + esc(e && (e.stack || e.message || e)), true);
+        }
+      })();
+    </script>
+  </body>
+</html>
