@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
+    <script>/*__网页分片__*/(function(){var M={"73291b63c37d76d29dfcfb1c12dc4412.data":{"n":2,"size":33531253,"type":"application/octet-stream","tag":"33a289df46d1574cbf75"},"8138db4eb0f2da700ab5d0697d0ffc7c.wasm":{"n":2,"size":31255044,"type":"application/wasm","tag":"a687377dbe79483582e9"}};var F=window.fetch.bind(window);function key(u){try{var p=new URL(u,location.href).pathname;var n=p.slice(p.lastIndexOf('/')+1);return M[n]?n:null;}catch(e){return null;}}window.fetch=function(i,o){var u=typeof i==='string'?i:(i&&i.url)||String(i);var n=key(u);if(!n)return F(i,o);var m=M[n],h=new Headers((o&&o.headers)||(typeof i!=='string'&&i&&i.headers)||undefined),meth=((o&&o.method)||(typeof i!=='string'&&i&&i.method)||'GET').toUpperCase();var et='"'+m.tag+'"',hd={'Content-Type':m.type,'Content-Length':String(m.size),'ETag':et};if(meth==='HEAD')return Promise.resolve(new Response(null,{status:200,headers:hd}));if(h.get('If-None-Match')===et)return Promise.resolve(new Response(null,{status:304,headers:hd}));var base=u.split('?')[0],ps=[];for(var k=0;k<m.n;k++){ps.push(F(base+'.part'+k).then(function(r){if(!r.ok)throw new Error('分片下载失败 '+r.status);return r;}));}return ps[0].then(function(){var k=0,rd=null;var s=new ReadableStream({pull:function(c){function next(){if(rd)return rd.read().then(function(x){if(x.done){rd=null;k++;return next();}c.enqueue(x.value);});if(k>=ps.length){c.close();return;}return ps[k].then(function(r){rd=r.body.getReader();return next();});}return next();}});return new Response(s,{status:200,headers:hd});});};})();</script>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=yes">
@@ -46,7 +47,7 @@
       <div id="loading-version">v1.3.0</div>
     </div>
     <div id="unity-diagnose"></div>
-    <script src="Build/10808e5934706ecac32f07320a4a61a9.loader.js"></script>
+    <script src="Build/0c3ba2664bd0c279c148ed0bf786d7c5.loader.js"></script>
     <script>
       (function() {
         var loading = document.getElementById('unity-loading');
@@ -224,9 +225,9 @@
           createUnityInstance(document.querySelector('#unity-canvas'), {
             arguments: [],
             matchWebGLToCanvasSize: true,
-            dataUrl: 'Build/fbe74bb400e3d92182b0e25df895d528.data',
-            frameworkUrl: 'Build/f16409f1487f75b451d09ddb1967f735.framework.js',
-            codeUrl: 'Build/e291b64c94497e651cfe75d37cef8f0a.wasm',
+            dataUrl: 'Build/73291b63c37d76d29dfcfb1c12dc4412.data',
+            frameworkUrl: 'Build/a63a3e1f08eba5ce4ce429a2853dc725.framework.js',
+            codeUrl: 'Build/8138db4eb0f2da700ab5d0697d0ffc7c.wasm',
             streamingAssetsUrl: 'StreamingAssets',
             companyName: 'Elyvon',
             productName: '天下归心',
