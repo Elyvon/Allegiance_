@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
-    <script>/*__网页分片__*/(function(){var M={"523310d5f7b18f8b8a734091eac82794.wasm":{"n":2,"size":31471254,"type":"application/wasm","tag":"e50b3775d81236ba56fd"},"97c0332b868b95fd8fa3798f5387aa0f.data":{"n":2,"size":34621140,"type":"application/octet-stream","tag":"13c57a91d6d1aa644596"}};var F=window.fetch.bind(window);function key(u){try{var p=new URL(u,location.href).pathname;var n=p.slice(p.lastIndexOf('/')+1);return M[n]?n:null;}catch(e){return null;}}window.fetch=function(i,o){var u=typeof i==='string'?i:(i&&i.url)||String(i);var n=key(u);if(!n)return F(i,o);var m=M[n],h=new Headers((o&&o.headers)||(typeof i!=='string'&&i&&i.headers)||undefined),meth=((o&&o.method)||(typeof i!=='string'&&i&&i.method)||'GET').toUpperCase();var et='"'+m.tag+'"',hd={'Content-Type':m.type,'Content-Length':String(m.size),'ETag':et};if(meth==='HEAD')return Promise.resolve(new Response(null,{status:200,headers:hd}));if(h.get('If-None-Match')===et)return Promise.resolve(new Response(null,{status:304,headers:hd}));function G(x,t){return F(x).then(function(r){if(!r.ok)throw new Error('分片下载失败 '+r.status);return r;}).catch(function(e){if(t>0)return new Promise(function(ok){setTimeout(ok,1500);}).then(function(){return G(x,t-1);});throw e;});}var base=u.split('?')[0],ps=[];for(var k=0;k<m.n;k++){var q=G(base+'.part'+k,2);q.catch(function(){});ps.push(q);}return ps[0].then(function(){var k=0,rd=null;var s=new ReadableStream({pull:function(c){function next(){if(rd)return rd.read().then(function(x){if(x.done){rd=null;k++;return next();}c.enqueue(x.value);});if(k>=ps.length){c.close();return;}return ps[k].then(function(r){rd=r.body.getReader();return next();});}return next();}});return new Response(s,{status:200,headers:hd});});};})();</script>
+    <script>/*__网页分片__*/(function(){var M={"5695ec7a3df7d88148b15c743db90e34.data":{"n":2,"size":34622156,"type":"application/octet-stream","tag":"c6ff9c75c3b0460e4496"},"700bc35ab1f551e377ca7dfde55a2380.wasm":{"n":2,"size":31478345,"type":"application/wasm","tag":"3deab83d95bf3587824b"}};var F=window.fetch.bind(window);function key(u){try{var p=new URL(u,location.href).pathname;var n=p.slice(p.lastIndexOf('/')+1);return M[n]?n:null;}catch(e){return null;}}window.fetch=function(i,o){var u=typeof i==='string'?i:(i&&i.url)||String(i);var n=key(u);if(!n)return F(i,o);var m=M[n],h=new Headers((o&&o.headers)||(typeof i!=='string'&&i&&i.headers)||undefined),meth=((o&&o.method)||(typeof i!=='string'&&i&&i.method)||'GET').toUpperCase();var et='"'+m.tag+'"',hd={'Content-Type':m.type,'Content-Length':String(m.size),'ETag':et};if(meth==='HEAD')return Promise.resolve(new Response(null,{status:200,headers:hd}));if(h.get('If-None-Match')===et)return Promise.resolve(new Response(null,{status:304,headers:hd}));function G(x,t){return F(x).then(function(r){if(!r.ok)throw new Error('分片下载失败 '+r.status);return r;}).catch(function(e){if(t>0)return new Promise(function(ok){setTimeout(ok,1500);}).then(function(){return G(x,t-1);});throw e;});}var base=u.split('?')[0],ps=[];for(var k=0;k<m.n;k++){var q=G(base+'.part'+k,2);q.catch(function(){});ps.push(q);}return ps[0].then(function(){var k=0,rd=null;var s=new ReadableStream({pull:function(c){function next(){if(rd)return rd.read().then(function(x){if(x.done){rd=null;k++;return next();}c.enqueue(x.value);});if(k>=ps.length){c.close();return;}return ps[k].then(function(r){rd=r.body.getReader();return next();});}return next();}});return new Response(s,{status:200,headers:hd});});};})();</script>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=yes">
@@ -47,7 +47,7 @@
       <div id="loading-version">v1.3.3</div>
     </div>
     <div id="unity-diagnose"></div>
-    <script src="Build/00181a0e19aa6c574a48139feeea8460.loader.js"></script>
+    <script src="Build/30d40807597bf983fcf4e64cd1c01a4f.loader.js"></script>
     <script>
       (function() {
         var loading = document.getElementById('unity-loading');
@@ -264,9 +264,9 @@
           createUnityInstance(document.querySelector('#unity-canvas'), {
             arguments: [],
             matchWebGLToCanvasSize: true,
-            dataUrl: 'Build/97c0332b868b95fd8fa3798f5387aa0f.data',
+            dataUrl: 'Build/5695ec7a3df7d88148b15c743db90e34.data',
             frameworkUrl: 'Build/b4174547899688d81d2eeb629b7208f9.framework.js',
-            codeUrl: 'Build/523310d5f7b18f8b8a734091eac82794.wasm',
+            codeUrl: 'Build/700bc35ab1f551e377ca7dfde55a2380.wasm',
             streamingAssetsUrl: 'StreamingAssets',
             companyName: 'Elyvon',
             productName: '天下归心',
