@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
-    <script>/*__网页分片__*/(function(){var M={"73291b63c37d76d29dfcfb1c12dc4412.data":{"n":2,"size":33531253,"type":"application/octet-stream","tag":"33a289df46d1574cbf75"},"8138db4eb0f2da700ab5d0697d0ffc7c.wasm":{"n":2,"size":31255044,"type":"application/wasm","tag":"a687377dbe79483582e9"}};var F=window.fetch.bind(window);function key(u){try{var p=new URL(u,location.href).pathname;var n=p.slice(p.lastIndexOf('/')+1);return M[n]?n:null;}catch(e){return null;}}window.fetch=function(i,o){var u=typeof i==='string'?i:(i&&i.url)||String(i);var n=key(u);if(!n)return F(i,o);var m=M[n],h=new Headers((o&&o.headers)||(typeof i!=='string'&&i&&i.headers)||undefined),meth=((o&&o.method)||(typeof i!=='string'&&i&&i.method)||'GET').toUpperCase();var et='"'+m.tag+'"',hd={'Content-Type':m.type,'Content-Length':String(m.size),'ETag':et};if(meth==='HEAD')return Promise.resolve(new Response(null,{status:200,headers:hd}));if(h.get('If-None-Match')===et)return Promise.resolve(new Response(null,{status:304,headers:hd}));var base=u.split('?')[0],ps=[];for(var k=0;k<m.n;k++){ps.push(F(base+'.part'+k).then(function(r){if(!r.ok)throw new Error('分片下载失败 '+r.status);return r;}));}return ps[0].then(function(){var k=0,rd=null;var s=new ReadableStream({pull:function(c){function next(){if(rd)return rd.read().then(function(x){if(x.done){rd=null;k++;return next();}c.enqueue(x.value);});if(k>=ps.length){c.close();return;}return ps[k].then(function(r){rd=r.body.getReader();return next();});}return next();}});return new Response(s,{status:200,headers:hd});});};})();</script>
+    <script>/*__网页分片__*/(function(){var M={"523310d5f7b18f8b8a734091eac82794.wasm":{"n":2,"size":31471254,"type":"application/wasm","tag":"e50b3775d81236ba56fd"},"97c0332b868b95fd8fa3798f5387aa0f.data":{"n":2,"size":34621140,"type":"application/octet-stream","tag":"13c57a91d6d1aa644596"}};var F=window.fetch.bind(window);function key(u){try{var p=new URL(u,location.href).pathname;var n=p.slice(p.lastIndexOf('/')+1);return M[n]?n:null;}catch(e){return null;}}window.fetch=function(i,o){var u=typeof i==='string'?i:(i&&i.url)||String(i);var n=key(u);if(!n)return F(i,o);var m=M[n],h=new Headers((o&&o.headers)||(typeof i!=='string'&&i&&i.headers)||undefined),meth=((o&&o.method)||(typeof i!=='string'&&i&&i.method)||'GET').toUpperCase();var et='"'+m.tag+'"',hd={'Content-Type':m.type,'Content-Length':String(m.size),'ETag':et};if(meth==='HEAD')return Promise.resolve(new Response(null,{status:200,headers:hd}));if(h.get('If-None-Match')===et)return Promise.resolve(new Response(null,{status:304,headers:hd}));function G(x,t){return F(x).then(function(r){if(!r.ok)throw new Error('分片下载失败 '+r.status);return r;}).catch(function(e){if(t>0)return new Promise(function(ok){setTimeout(ok,1500);}).then(function(){return G(x,t-1);});throw e;});}var base=u.split('?')[0],ps=[];for(var k=0;k<m.n;k++){var q=G(base+'.part'+k,2);q.catch(function(){});ps.push(q);}return ps[0].then(function(){var k=0,rd=null;var s=new ReadableStream({pull:function(c){function next(){if(rd)return rd.read().then(function(x){if(x.done){rd=null;k++;return next();}c.enqueue(x.value);});if(k>=ps.length){c.close();return;}return ps[k].then(function(r){rd=r.body.getReader();return next();});}return next();}});return new Response(s,{status:200,headers:hd});});};})();</script>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=yes">
@@ -44,10 +44,10 @@
         <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
         <div id="loading-info"><span id="loading-phase">资源加载中…</span><span id="loading-pct">0%</span></div>
       </div>
-      <div id="loading-version">v1.3.0</div>
+      <div id="loading-version">v1.3.3</div>
     </div>
     <div id="unity-diagnose"></div>
-    <script src="Build/0c3ba2664bd0c279c148ed0bf786d7c5.loader.js"></script>
+    <script src="Build/00181a0e19aa6c574a48139feeea8460.loader.js"></script>
     <script>
       (function() {
         var loading = document.getElementById('unity-loading');
@@ -209,29 +209,68 @@
             .replace(/\n/g,'<br>');
         }
 
-        window.addEventListener('error', function(e) {
-          var m = 'GLOBAL_ERROR: ' + (e && e.message) + '<br>at ' + ((e && e.filename)||'') + ':' + ((e && e.lineno)||'');
-          if (e && e.stack) m += '<br>' + esc(e.stack);
+        // 【只在游戏真的挂了时才出 Fatal Error】原来任何全局 error / 未处理的 Promise 拒绝都会盖上致命错误页：
+        // 图片等资源加载失败（捕获阶段的 error）、浏览器扩展注入的脚本报错、ResizeObserver 提示、
+        // 手机上自动播放被拦（play() NotAllowedError）、网络请求中断（AbortError）……这些都不影响游戏，
+        // 却会把正在玩的画面整个挡住。现在：游戏自身（Build/ 下的脚本、wasm）出错或运行时中止才算致命，
+        // 其它一律只上报到日志接收端（elyvon.net:8448，每页最多 20 条），不打断游戏。
+        var 已上报 = 0, 已致命 = false;
+        function 上报(类别, 文本) {
+          try {
+            console.warn('[页面错误]', 类别, 文本);
+            if (已上报 >= 20 || !navigator.sendBeacon) return;
+            已上报++;
+            var 行 = new Date().toISOString() + ' [H5页面] ' + 类别 + ' ' + String(文本).slice(0, 1500) + ' | 页面=' + location.host + location.pathname;
+            navigator.sendBeacon('https://elyvon.net:8448/log?t=ed1c6f0a3eac9e3a18cc1db6f0d187d3',
+              JSON.stringify({ device: (navigator.userAgent || '').slice(0, 280), lines: [行] }));
+          } catch (x) { }
+        }
+        function 是致命(信息, 文件) {
+          if (/(^|\/)Build\//.test(文件 || '')) return true;
+          return /RuntimeError|Aborted|abort\(|out of memory|memory access out of bounds|unreachable|wasm|Cannot enlarge memory|OOM/i.test(信息 || '');
+        }
+        function 致命(m) {
+          if (已致命) return;
+          已致命 = true;
           展示诊断(m + '<br><br>' + esc(diagInfo()), true);
+        }
+        window.addEventListener('error', function(e) {
+          // 资源加载失败（img / script / link 等）：目标不是 window，没有 message
+          if (e && e.target && e.target !== window) {
+            var 源 = e.target.src || e.target.href || (e.target.tagName || '');
+            上报('RESOURCE_ERROR', 源);
+            return;
+          }
+          var 信息 = (e && e.message) || '';
+          var 文件 = (e && e.filename) || '';
+          var 栈 = e && e.error && e.error.stack ? String(e.error.stack) : '';
+          var 文本 = 信息 + ' at ' + 文件 + ':' + ((e && e.lineno) || '') + (栈 ? '\n' + 栈 : '');
+          上报(是致命(信息 + ' ' + 栈, 文件) ? 'GLOBAL_ERROR(致命)' : 'GLOBAL_ERROR', 文本);
+          if (是致命(信息 + ' ' + 栈, 文件)) {
+            致命('GLOBAL_ERROR: ' + esc(信息) + '<br>at ' + esc(文件) + ':' + ((e && e.lineno) || '') + (栈 ? '<br>' + esc(栈) : ''));
+          }
         }, true);
         window.addEventListener('unhandledrejection', function(e) {
           var r = e && e.reason;
-          var m = 'UNHANDLED_REJECTION: ' + (r && (r.message||r));
-          if (r && r.stack) m += '<br>' + esc(r.stack);
-          展示诊断(m + '<br><br>' + esc(diagInfo()), true);
+          var 信息 = r ? String(r.message || r) : '';
+          var 栈 = r && r.stack ? String(r.stack) : '';
+          var 名 = r && r.name ? String(r.name) : '';
+          var 致 = 是致命(信息 + ' ' + 栈, '') && 名 !== 'AbortError' && 名 !== 'NotAllowedError';
+          上报(致 ? 'UNHANDLED_REJECTION(致命)' : 'UNHANDLED_REJECTION', 名 + ': ' + 信息 + (栈 ? '\n' + 栈 : ''));
+          if (致) 致命('UNHANDLED_REJECTION: ' + esc(信息) + (栈 ? '<br>' + esc(栈) : ''));
         });
 
         try {
           createUnityInstance(document.querySelector('#unity-canvas'), {
             arguments: [],
             matchWebGLToCanvasSize: true,
-            dataUrl: 'Build/73291b63c37d76d29dfcfb1c12dc4412.data',
-            frameworkUrl: 'Build/a63a3e1f08eba5ce4ce429a2853dc725.framework.js',
-            codeUrl: 'Build/8138db4eb0f2da700ab5d0697d0ffc7c.wasm',
+            dataUrl: 'Build/97c0332b868b95fd8fa3798f5387aa0f.data',
+            frameworkUrl: 'Build/b4174547899688d81d2eeb629b7208f9.framework.js',
+            codeUrl: 'Build/523310d5f7b18f8b8a734091eac82794.wasm',
             streamingAssetsUrl: 'StreamingAssets',
             companyName: 'Elyvon',
             productName: '天下归心',
-            productVersion: '1.3.0',
+            productVersion: '1.3.3',
             downloadProgress: 下载进度
           }, updateProgress).then(function(instance) {
             globalThis.unityInstance = instance;
@@ -243,10 +282,12 @@
             }
           }).catch(function(message) {
             setPhase('启动失败');
-            展示诊断('UNITY_INIT_FAILED<br>' + esc(message) + '<br><br>' + esc(diagInfo()), true);
+            上报('UNITY_INIT_FAILED', message);
+            致命('UNITY_INIT_FAILED<br>' + esc(message));
           });
         } catch(e) {
-          展示诊断('UNITY_BOOT_EXCEPTION<br>' + esc(e && (e.stack || e.message || e)), true);
+          上报('UNITY_BOOT_EXCEPTION', e && (e.stack || e.message || e));
+          致命('UNITY_BOOT_EXCEPTION<br>' + esc(e && (e.stack || e.message || e)));
         }
       })();
     </script>
